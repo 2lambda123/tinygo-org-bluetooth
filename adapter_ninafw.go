@@ -20,7 +20,7 @@ type Adapter struct {
 	scanning  bool
 
 	reset          func()
-	connectHandler func(device Address, connected bool)
+	connectHandler func(device Device, connected bool)
 
 	connectedDevices     []Device
 	notificationsStarted bool
@@ -32,7 +32,7 @@ type Adapter struct {
 var DefaultAdapter = &Adapter{
 	isDefault: true,
 	reset:     resetNINAInverted,
-	connectHandler: func(device Address, connected bool) {
+	connectHandler: func(device Device, connected bool) {
 		return
 	},
 	connectedDevices: make([]Device, 0, maxConnections),

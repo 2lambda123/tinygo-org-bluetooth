@@ -3,13 +3,26 @@ package bluetooth
 // This file implements 16-bit and 128-bit UUIDs as defined in the Bluetooth
 // specification.
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
 // UUID is a single UUID as used in the Bluetooth stack. It is represented as a
 // [4]uint32 instead of a [16]byte for efficiency.
 type UUID [4]uint32
 
 var errInvalidUUID = errors.New("bluetooth: failed to parse UUID")
+
+// NewUUID returns a new UUID based on the 128-bit (or 16-byte) input.
+func NewUUID(uuid [16]byte) UUID {
+	u := UUID{}
+	u[0] = uint32(uuid[15]) | uint32(uuid[14])<<8 | uint32(uuid[13])<<16 | uint32(uuid[12])<<24
+	u[1] = uint32(uuid[11]) | uint32(uuid[10])<<8 | uint32(uuid[9])<<16 | uint32(uuid[8])<<24
+	u[2] = uint32(uuid[7]) | uint32(uuid[6])<<8 | uint32(uuid[5])<<16 | uint32(uuid[4])<<24
+	u[3] = uint32(uuid[3]) | uint32(uuid[2])<<8 | uint32(uuid[1])<<16 | uint32(uuid[0])<<24
+	return u
+}
 
 // New16BitUUID returns a new 128-bit UUID based on a 16-bit UUID.
 //
@@ -23,16 +36,6 @@ func New16BitUUID(shortUUID uint16) UUID {
 	uuid[2] = 0x00001000
 	uuid[3] = uint32(shortUUID)
 	return uuid
-}
-
-// NewUUID returns a new UUID based on the 128-bit (or 16-byte) input.
-func NewUUID(uuid [16]byte) UUID {
-	u := UUID{}
-	u[0] = uint32(uuid[15]) | uint32(uuid[14])<<8 | uint32(uuid[13])<<16 | uint32(uuid[12])<<24
-	u[1] = uint32(uuid[11]) | uint32(uuid[10])<<8 | uint32(uuid[9])<<16 | uint32(uuid[8])<<24
-	u[2] = uint32(uuid[7]) | uint32(uuid[6])<<8 | uint32(uuid[5])<<16 | uint32(uuid[4])<<24
-	u[3] = uint32(uuid[3]) | uint32(uuid[2])<<8 | uint32(uuid[1])<<16 | uint32(uuid[0])<<24
-	return u
 }
 
 // Replace16BitComponent returns a new UUID where bits 16..32 have been replaced
@@ -104,6 +107,8 @@ func ParseUUID(s string) (uuid UUID, err error) {
 			nibble = c - '0' + 0x0
 		} else if c >= 'a' && c <= 'f' {
 			nibble = c - 'a' + 0xa
+		} else if c >= 'A' && c <= 'F' {
+			nibble = c - 'A' + 0xa
 		} else {
 			err = errInvalidUUID
 			return
@@ -115,24 +120,24 @@ func ParseUUID(s string) (uuid UUID, err error) {
 		uuid[3-uuidIndex/8] |= uint32(nibble) << (4 * (7 - uuidIndex%8))
 		uuidIndex++
 	}
-	if uuidIndex != 31 {
+	if uuidIndex != 32 {
 		// The UUID doesn't have exactly 32 nibbles. Perhaps a 16-bit or 32-bit
 		// UUID?
 		err = errInvalidUUID
 	}
-	return uuid, nil
+	return
 }
 
 // String returns a human-readable version of this UUID, such as
 // 00001234-0000-1000-8000-00805f9b34fb.
 func (uuid UUID) String() string {
-	// TODO: make this more efficient.
-	s := ""
+	var s strings.Builder
+	s.Grow(36)
 	raw := uuid.Bytes()
 	for i := range raw {
 		// Insert a hyphen at the correct locations.
 		if i == 4 || i == 6 || i == 8 || i == 10 {
-			s += "-"
+			s.WriteRune('-')
 		}
 
 		// The character to convert to hex.
@@ -141,19 +146,19 @@ func (uuid UUID) String() string {
 		// First nibble.
 		nibble := c >> 4
 		if nibble <= 9 {
-			s += string(nibble + '0')
+			s.WriteByte(nibble + '0')
 		} else {
-			s += string(nibble + 'a' - 10)
+			s.WriteByte(nibble + 'a' - 10)
 		}
 
 		// Second nibble.
 		nibble = c & 0x0f
 		if nibble <= 9 {
-			s += string(nibble + '0')
+			s.WriteByte(nibble + '0')
 		} else {
-			s += string(nibble + 'a' - 10)
+			s.WriteByte(nibble + 'a' - 10)
 		}
 	}
 
-	return s
+	return s.String()
 }

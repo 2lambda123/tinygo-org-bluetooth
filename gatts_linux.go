@@ -1,4 +1,4 @@
-// +build !baremetal
+//go:build !baremetal
 
 package bluetooth
 
@@ -23,6 +23,13 @@ func (a *Adapter) AddService(s *Service) error {
 	if err != nil {
 		return err
 	}
+
+	// disable magic uuid generation because we send through a fully formed UUID.
+	// muka/go-bluetooth does some magic so you can use short UUIDs and it'll auto
+	// expand them to the full 128 bit uuid.
+	// setting these flags disables that behavior.
+	app.Options.UUIDSuffix = ""
+	app.Options.UUID = ""
 
 	bluezService, err := app.NewService(s.UUID.String())
 	if err != nil {

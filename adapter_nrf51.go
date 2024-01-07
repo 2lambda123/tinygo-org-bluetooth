@@ -1,17 +1,13 @@
-// +build softdevice,s110v8
+//go:build softdevice && s110v8
 
 package bluetooth
 
 /*
-// Define SoftDevice functions as regular function declarations (not inline
-// static functions).
-#define SVCALL_AS_NORMAL_FUNCTION
-
 #include "nrf_sdm.h"
 #include "ble.h"
 #include "ble_gap.h"
 
-void assertHandler(void);
+void assertHandler(uint32_t pc, uint16_t line_number, const uint8_t * p_file_name);
 */
 import "C"
 
@@ -47,6 +43,7 @@ func handleEvent() {
 		switch id {
 		case C.BLE_GAP_EVT_CONNECTED:
 			currentConnection.Reg = gapEvent.conn_handle
+			DefaultAdapter.connectHandler(Address{}, true)
 		case C.BLE_GAP_EVT_DISCONNECTED:
 			if defaultAdvertisement.isAdvertising.Get() != 0 {
 				// The advertisement was running but was automatically stopped
@@ -58,6 +55,7 @@ func handleEvent() {
 				defaultAdvertisement.start()
 			}
 			currentConnection.Reg = C.BLE_CONN_HANDLE_INVALID
+			DefaultAdapter.connectHandler(Address{}, false)
 		case C.BLE_GAP_EVT_CONN_PARAM_UPDATE_REQUEST:
 			// Respond with the default PPCP connection parameters by passing
 			// nil:
@@ -103,4 +101,13 @@ func handleEvent() {
 			println("unknown event:", id)
 		}
 	}
+}
+
+func (a *Adapter) Address() (MACAddress, error) {
+	var addr C.ble_gap_addr_t
+	errCode := C.sd_ble_gap_address_get(&addr)
+	if errCode != 0 {
+		return MACAddress{}, Error(errCode)
+	}
+	return MACAddress{MAC: addr.addr}, nil
 }

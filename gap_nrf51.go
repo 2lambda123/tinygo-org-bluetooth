@@ -1,13 +1,14 @@
-// +build softdevice,s110v8
+//go:build softdevice && s110v8
 
 package bluetooth
 
 /*
-// Define SoftDevice functions as regular function declarations (not inline
-// static functions).
-#define SVCALL_AS_NORMAL_FUNCTION
-
 #include "ble_gap.h"
+
+// Workaround wrapper function to avoid pointer arguments escaping to heap
+static inline uint32_t sd_ble_gap_adv_start_noescape(ble_gap_adv_params_t const p_adv_params) {
+	return sd_ble_gap_adv_start(&p_adv_params);
+}
 */
 import "C"
 
@@ -15,6 +16,11 @@ import (
 	"runtime/volatile"
 	"time"
 )
+
+// Address contains a Bluetooth MAC address.
+type Address struct {
+	MACAddress
+}
 
 // Advertisement encapsulates a single advertisement instance.
 type Advertisement struct {
@@ -58,6 +64,13 @@ func (a *Advertisement) Start() error {
 	return makeError(errCode)
 }
 
+// Stop advertisement.
+func (a *Advertisement) Stop() error {
+	a.isAdvertising.Set(0)
+	errCode := C.sd_ble_gap_adv_stop()
+	return makeError(errCode)
+}
+
 // Low-level version of Start. Used to restart advertisement when a connection
 // is lost.
 func (a *Advertisement) start() uint32 {
@@ -67,5 +80,5 @@ func (a *Advertisement) start() uint32 {
 		interval: uint16(a.interval),
 		timeout:  0, // no timeout
 	}
-	return C.sd_ble_gap_adv_start(&params)
+	return C.sd_ble_gap_adv_start_noescape(params)
 }

@@ -11,6 +11,34 @@ var (
 	errAdvertisementPacketTooBig = errors.New("bluetooth: advertisement packet overflows")
 )
 
+// MACAddress contains a Bluetooth address which is a MAC address.
+type MACAddress struct {
+	// MAC address of the Bluetooth device.
+	MAC
+
+	isRandom bool
+}
+
+// IsRandom if the address is randomly created.
+func (mac MACAddress) IsRandom() bool {
+	return mac.isRandom
+}
+
+// SetRandom if is a random address.
+func (mac *MACAddress) SetRandom(val bool) {
+	mac.isRandom = val
+}
+
+// Set the address
+func (mac *MACAddress) Set(val string) {
+	m, err := ParseMAC(val)
+	if err != nil {
+		return
+	}
+
+	mac.MAC = m
+}
+
 // AdvertisementOptions configures an advertisement instance. More options may
 // be added over time.
 type AdvertisementOptions struct {
@@ -25,6 +53,10 @@ type AdvertisementOptions struct {
 
 	// Interval in BLE-specific units. Create an interval by using NewDuration.
 	Interval Duration
+
+	// ManufacturerData stores Advertising Data.
+	// Keys are the Manufacturer ID to associate with the data.
+	ManufacturerData map[uint16]interface{}
 }
 
 // Duration is the unit of time used in BLE, in 0.625µs units. This unit of time
@@ -40,22 +72,6 @@ func NewDuration(interval time.Duration) Duration {
 
 // Connection is a numeric identifier that indicates a connection handle.
 type Connection uint16
-
-// Address contains a Bluetooth address, which is a MAC address plus some extra
-// information.
-type Address struct {
-	// The MAC address of a Bluetooth device.
-	MAC
-
-	// Is this address a random address?
-	// Bluetooth addresses are roughly split in two kinds: public
-	// (IEEE-assigned) addresses and random (not IEEE assigned) addresses.
-	// "Random" here doesn't mean it is exactly random but at least it looks
-	// random. Sometimes, it contains a hash.
-	// For more information:
-	// https://www.novelbits.io/bluetooth-address-privacy-ble/
-	IsRandom bool
-}
 
 // ScanResult contains information from when an advertisement packet was
 // received. It is passed as a parameter to the callback of the Scan method.
@@ -93,6 +109,10 @@ type AdvertisementPayload interface {
 	// Bytes returns the raw advertisement packet, if available. It returns nil
 	// if this data is not available.
 	Bytes() []byte
+
+	// ManufacturerData returns a map with all the manufacturer data present in the
+	//advertising. IT may be empty.
+	ManufacturerData() map[uint16][]byte
 }
 
 // AdvertisementFields contains advertisement fields in structured form.
@@ -105,6 +125,9 @@ type AdvertisementFields struct {
 	// part of the advertisement packet, in data types such as "complete list of
 	// 128-bit UUIDs".
 	ServiceUUIDs []UUID
+
+	// ManufacturerData is the manufacturer data of the advertisement.
+	ManufacturerData map[uint16][]byte
 }
 
 // advertisementFields wraps AdvertisementFields to implement the
@@ -135,6 +158,11 @@ func (p *advertisementFields) HasServiceUUID(uuid UUID) bool {
 // original raw advertisement data available.
 func (p *advertisementFields) Bytes() []byte {
 	return nil
+}
+
+// ManufacturerData returns the underlying ManufacturerData field.
+func (p *advertisementFields) ManufacturerData() map[uint16][]byte {
+	return p.AdvertisementFields.ManufacturerData
 }
 
 // rawAdvertisementPayload encapsulates a raw advertisement packet. Methods to
@@ -225,6 +253,32 @@ func (buf *rawAdvertisementPayload) HasServiceUUID(uuid UUID) bool {
 	}
 }
 
+// ManufacturerData returns the manufacturer data in the advertisement payload.
+func (buf *rawAdvertisementPayload) ManufacturerData() map[uint16][]byte {
+	mData := make(map[uint16][]byte)
+	data := buf.Bytes()
+	for len(data) >= 2 {
+		fieldLength := data[0]
+		if int(fieldLength)+1 > len(data) {
+			// Invalid field length.
+			return nil
+		}
+		// If this is the manufacturer data
+		if byte(0xFF) == data[1] {
+			mData[uint16(data[2])+(uint16(data[3])<<8)] = data[4 : fieldLength+1]
+		}
+		data = data[fieldLength+1:]
+	}
+	return mData
+}
+
+// reset restores this buffer to the original state.
+func (buf *rawAdvertisementPayload) reset() {
+	// The data is not reset (only the length), because with a zero length the
+	// data is undefined.
+	buf.len = 0
+}
+
 // addFromOptions constructs a new advertisement payload (assumed to be empty
 // before the call) from the advertisement options. It returns true if it fits,
 // false otherwise.
@@ -245,6 +299,37 @@ func (buf *rawAdvertisementPayload) addFromOptions(options AdvertisementOptions)
 			return false
 		}
 	}
+
+	if len(options.ManufacturerData) > 0 {
+		buf.addManufacturerData(options.ManufacturerData)
+	}
+
+	return true
+}
+
+// addManufacturerData adds manufacturer data ([]byte) entries to the advertisement payload.
+func (buf *rawAdvertisementPayload) addManufacturerData(manufacturerData map[uint16]interface{}) (ok bool) {
+	payloadData := buf.Bytes()
+	for manufacturerID, rawData := range manufacturerData {
+		data := rawData.([]byte)
+		// Check if the manufacturer ID is within the range of 16 bits (0-65535).
+		if manufacturerID > 0xFFFF {
+			// Invalid manufacturer ID.
+			return false
+		}
+
+		fieldLength := len(data) + 3
+
+		// Build manufacturer ID parts
+		manufacturerDataBit := byte(0xFF)
+		manufacturerIDPart1 := byte(manufacturerID & 0xFF)
+		manufacturerIDPart2 := byte((manufacturerID >> 8) & 0xFF)
+
+		payloadData = append(payloadData, byte(fieldLength), manufacturerDataBit, manufacturerIDPart1, manufacturerIDPart2)
+		payloadData = append(payloadData, data...)
+	}
+	buf.len = uint8(len(payloadData))
+	copy(buf.data[:], payloadData)
 	return true
 }
 

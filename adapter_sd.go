@@ -1,4 +1,4 @@
-// +build softdevice
+//go:build softdevice
 
 package bluetooth
 
@@ -9,6 +9,14 @@ import (
 	"runtime/volatile"
 	"unsafe"
 )
+
+// #include "ble.h"
+// #ifdef NRF51
+//   #include "nrf_soc.h"
+// #else
+//   #include "nrf_nvic.h"
+// #endif
+import "C"
 
 var (
 	ErrNotDefaultAdapter = errors.New("bluetooth: not the default adapter")
@@ -39,13 +47,20 @@ type Adapter struct {
 	isDefault         bool
 	scanning          bool
 	charWriteHandlers []charWriteHandler
+
+	connectHandler func(device Address, connected bool)
 }
 
 // DefaultAdapter is the default adapter on the current system. On Nordic chips,
 // it will return the SoftDevice interface.
 //
 // Make sure to call Enable() before using it to initialize the adapter.
-var DefaultAdapter = &Adapter{isDefault: true}
+var DefaultAdapter = &Adapter{isDefault: true,
+	connectHandler: func(device Address, connected bool) {
+		return
+	}}
+
+var eventBufLen uint16
 
 // Enable configures the BLE stack. It must be called before any
 // Bluetooth-related calls (unless otherwise indicated).
@@ -57,7 +72,7 @@ func (a *Adapter) Enable() error {
 	// Enable the IRQ that handles all events.
 	intr := interrupt.New(nrf.IRQ_SWI2, func(interrupt.Interrupt) {
 		for {
-			eventBufLen := uint16(unsafe.Sizeof(eventBuf))
+			eventBufLen = uint16(unsafe.Sizeof(eventBuf))
 			errCode := C.sd_ble_evt_get((*uint8)(unsafe.Pointer(&eventBuf)), &eventBufLen)
 			if errCode != 0 {
 				// Possible error conditions:

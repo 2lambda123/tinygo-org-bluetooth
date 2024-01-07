@@ -1,4 +1,4 @@
-// +build softdevice,s110v8
+//go:build softdevice && s110v8
 
 package bluetooth
 

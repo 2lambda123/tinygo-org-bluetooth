@@ -821,7 +821,7 @@ typedef struct {
                                      Private Address (when the peer is using privacy).           If
                                      set to 1, @ref addr and @ref addr_type refer to the
                                      identity address of the resolved address.
-          
+
                                      This bit is ignored when a variable of type @ref
                                      ble_gap_addr_t is used as input to API functions. */
   uint8_t addr_type : 7;          /**< See @ref BLE_GAP_ADDR_TYPES. */

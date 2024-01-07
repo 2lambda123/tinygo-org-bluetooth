@@ -20,8 +20,8 @@ Please open a Github issue. We want to help, and also make sure that there is no
 
 If your contribution includes a new API (one that does not exist yet for any BLE stack), please make sure it is portable:
 
-  * Ideally, add support for it to two different Bluetooth APIs at the same time, for example CoreBluetooth and BlueZ.
-  * If you are unable to do so, please explain (with links to documentation!) why this feature also fits a different API.
+- Ideally, add support for it to two different Bluetooth APIs at the same time, for example CoreBluetooth and BlueZ.
+- If you are unable to do so, please explain (with links to documentation!) why this feature also fits a different API.
 
 ## How to use our Github repository
 

@@ -66,7 +66,7 @@ func handleEvent() {
 			// > will be rejected
 			C.sd_ble_gap_conn_param_update(gapEvent.conn_handle, nil)
 		default:
-			if debug {
+			if _debug {
 				println("unknown GAP event:", id)
 			}
 		}
@@ -92,12 +92,12 @@ func handleEvent() {
 			// way to handle it, ignore it.
 			C.sd_ble_gatts_sys_attr_set(gattsEvent.conn_handle, nil, 0, 0)
 		default:
-			if debug {
+			if _debug {
 				println("unknown GATTS event:", id, id-C.BLE_GATTS_EVT_BASE)
 			}
 		}
 	default:
-		if debug {
+		if _debug {
 			println("unknown event:", id)
 		}
 	}

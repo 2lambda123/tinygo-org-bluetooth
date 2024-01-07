@@ -24,13 +24,13 @@ func handleEvent() {
 		gapEvent := eventBuf.evt.unionfield_gap_evt()
 		switch id {
 		case C.BLE_GAP_EVT_CONNECTED:
-			if debug {
+			if _debug {
 				println("evt: connected in peripheral role")
 			}
 			currentConnection.handle.Reg = uint16(gapEvent.conn_handle)
 			DefaultAdapter.connectHandler(Address{}, true)
 		case C.BLE_GAP_EVT_DISCONNECTED:
-			if debug {
+			if _debug {
 				println("evt: disconnected")
 			}
 			currentConnection.handle.Reg = C.BLE_CONN_HANDLE_INVALID
@@ -57,7 +57,7 @@ func handleEvent() {
 		case C.BLE_GAP_EVT_PHY_UPDATE:
 			// ignore confirmation of phy successfully updated
 		default:
-			if debug {
+			if _debug {
 				println("unknown GAP event:", id)
 			}
 		}
@@ -89,12 +89,12 @@ func handleEvent() {
 		case C.BLE_GATTS_EVT_HVN_TX_COMPLETE:
 			// ignore confirmation of a notification successfully sent
 		default:
-			if debug {
+			if _debug {
 				println("unknown GATTS event:", id, id-C.BLE_GATTS_EVT_BASE)
 			}
 		}
 	default:
-		if debug {
+		if _debug {
 			println("unknown event:", id)
 		}
 	}

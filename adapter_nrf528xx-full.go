@@ -27,13 +27,13 @@ func handleEvent() {
 			connectEvent := gapEvent.params.unionfield_connected()
 			switch connectEvent.role {
 			case C.BLE_GAP_ROLE_PERIPH:
-				if debug {
+				if _debug {
 					println("evt: connected in peripheral role")
 				}
 				currentConnection.handle.Reg = uint16(gapEvent.conn_handle)
 				DefaultAdapter.connectHandler(Address{}, true)
 			case C.BLE_GAP_ROLE_CENTRAL:
-				if debug {
+				if _debug {
 					println("evt: connected in central role")
 				}
 				connectionAttempt.connectionHandle = gapEvent.conn_handle
@@ -41,7 +41,7 @@ func handleEvent() {
 				DefaultAdapter.connectHandler(Address{}, true)
 			}
 		case C.BLE_GAP_EVT_DISCONNECTED:
-			if debug {
+			if _debug {
 				println("evt: disconnected")
 			}
 			// Clean up state for this connection.
@@ -64,7 +64,7 @@ func handleEvent() {
 			DefaultAdapter.connectHandler(Address{}, false)
 		case C.BLE_GAP_EVT_ADV_REPORT:
 			advReport := gapEvent.params.unionfield_adv_report()
-			if debug && &scanReportBuffer.data[0] != (*byte)(unsafe.Pointer(advReport.data.p_data)) {
+			if _debug && &scanReportBuffer.data[0] != (*byte)(unsafe.Pointer(advReport.data.p_data)) {
 				// Sanity check.
 				panic("scanReportBuffer != advReport.p_data")
 			}
@@ -102,7 +102,7 @@ func handleEvent() {
 		case C.BLE_GAP_EVT_PHY_UPDATE:
 			// ignore confirmation of phy successfully updated
 		default:
-			if debug {
+			if _debug {
 				println("unknown GAP event:", id)
 			}
 		}
@@ -134,7 +134,7 @@ func handleEvent() {
 		case C.BLE_GATTS_EVT_HVN_TX_COMPLETE:
 			// ignore confirmation of a notification successfully sent
 		default:
-			if debug {
+			if _debug {
 				println("unknown GATTS event:", id, id-C.BLE_GATTS_EVT_BASE)
 			}
 		}
@@ -143,7 +143,7 @@ func handleEvent() {
 		switch id {
 		case C.BLE_GATTC_EVT_PRIM_SRVC_DISC_RSP:
 			discoveryEvent := gattcEvent.params.unionfield_prim_srvc_disc_rsp()
-			if debug {
+			if _debug {
 				println("evt: discovered primary service", discoveryEvent.count)
 			}
 			discoveringService.state.Set(2) // signal there is a result
@@ -160,7 +160,7 @@ func handleEvent() {
 			}
 		case C.BLE_GATTC_EVT_CHAR_DISC_RSP:
 			discoveryEvent := gattcEvent.params.unionfield_char_disc_rsp()
-			if debug {
+			if _debug {
 				println("evt: discovered characteristics", discoveryEvent.count)
 			}
 			if discoveryEvent.count >= 1 {
@@ -175,7 +175,7 @@ func handleEvent() {
 			}
 		case C.BLE_GATTC_EVT_DESC_DISC_RSP:
 			discoveryEvent := gattcEvent.params.unionfield_desc_disc_rsp()
-			if debug {
+			if _debug {
 				println("evt: discovered descriptors", discoveryEvent.count)
 			}
 			if discoveryEvent.count >= 1 {
@@ -190,14 +190,14 @@ func handleEvent() {
 					// Found something else?
 					// TODO: handle this properly by continuing the scan. For
 					// now, give up if we found something other than a CCCD.
-					if debug {
+					if _debug {
 						println("  found some other descriptor (unimplemented)")
 					}
 				}
 			}
 		case C.BLE_GATTC_EVT_READ_RSP:
 			readEvent := gattcEvent.params.unionfield_read_rsp()
-			if debug {
+			if _debug {
 				println("evt: read response, data length", readEvent.len)
 			}
 			readingCharacteristic.handle_value.Set(readEvent.handle)
@@ -210,7 +210,7 @@ func handleEvent() {
 			hvxEvent := gattcEvent.params.unionfield_hvx()
 			switch hvxEvent._type {
 			case C.BLE_GATT_HVX_NOTIFICATION:
-				if debug {
+				if _debug {
 					println("evt: notification", hvxEvent.handle)
 				}
 				// Find the callback and call it (if there is any).
@@ -227,12 +227,12 @@ func handleEvent() {
 				}
 			}
 		default:
-			if debug {
+			if _debug {
 				println("unknown GATTC event:", id, id-C.BLE_GATTC_EVT_BASE)
 			}
 		}
 	default:
-		if debug {
+		if _debug {
 			println("unknown event:", id)
 		}
 	}

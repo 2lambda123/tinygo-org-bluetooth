@@ -11,6 +11,28 @@ import (
 
 const maxConnections = 1
 
+var (
+	// NINA-W102 Pins
+	NINA_SCK machine.Pin
+	NINA_SDO machine.Pin
+	NINA_SDI machine.Pin
+
+	NINA_CS     machine.Pin
+	NINA_ACK    machine.Pin
+	NINA_GPIO0  machine.Pin
+	NINA_RESETN machine.Pin
+
+	NINA_TX  machine.Pin
+	NINA_RX  machine.Pin
+	NINA_CTS machine.Pin
+	NINA_RTS machine.Pin
+
+	// NINA-W102 settings
+	NINA_BAUDRATE         = 115200
+	NINA_RESET_INVERTED   = true
+	NINA_SOFT_FLOWCONTROL = false
+)
+
 // Adapter represents the UART connection to the NINA fw.
 type Adapter struct {
 	hci *hci

@@ -185,21 +185,21 @@ extern "C" {
 /** @brief 128 bit UUID values. */
 typedef struct
 {
-  uint8_t uuid128[16]; /**< Little-Endian UUID bytes. */
+    uint8_t uuid128[16]; /**< Little-Endian UUID bytes. */
 } ble_uuid128_t;
 
 /** @brief  Bluetooth Low Energy UUID type, encapsulates both 16-bit and 128-bit UUIDs. */
 typedef struct
 {
-  uint16_t    uuid; /**< 16-bit UUID value or octets 12-13 of 128-bit UUID. */
-  uint8_t     type; /**< UUID type, see @ref BLE_UUID_TYPES. If type is @ref BLE_UUID_TYPE_UNKNOWN, the value of uuid is undefined. */
+    uint16_t    uuid; /**< 16-bit UUID value or octets 12-13 of 128-bit UUID. */
+    uint8_t     type; /**< UUID type, see @ref BLE_UUID_TYPES. If type is @ref BLE_UUID_TYPE_UNKNOWN, the value of uuid is undefined. */
 } ble_uuid_t;
 
 /**@brief Data structure. */
 typedef struct
 {
-  uint8_t     *p_data;  /**< Pointer to the data buffer provided to/from the application. */
-  uint16_t     len;     /**< Length of the data buffer, in bytes. */
+    uint8_t     *p_data;  /**< Pointer to the data buffer provided to/from the application. */
+    uint16_t     len;     /**< Length of the data buffer, in bytes. */
 } ble_data_t;
 
 /** @} */

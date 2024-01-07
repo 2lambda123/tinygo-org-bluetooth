@@ -190,11 +190,11 @@ the start of the SoftDevice (without MBR)*/
 /**@brief nRF SoftDevice Manager API SVC numbers. */
 enum NRF_SD_SVCS
 {
-  SD_SOFTDEVICE_ENABLE = SDM_SVC_BASE, /**< ::sd_softdevice_enable */
-  SD_SOFTDEVICE_DISABLE,               /**< ::sd_softdevice_disable */
-  SD_SOFTDEVICE_IS_ENABLED,            /**< ::sd_softdevice_is_enabled */
-  SD_SOFTDEVICE_VECTOR_TABLE_BASE_SET, /**< ::sd_softdevice_vector_table_base_set */
-  SVC_SDM_LAST                         /**< Placeholder for last SDM SVC */
+    SD_SOFTDEVICE_ENABLE = SDM_SVC_BASE, /**< ::sd_softdevice_enable */
+    SD_SOFTDEVICE_DISABLE,               /**< ::sd_softdevice_disable */
+    SD_SOFTDEVICE_IS_ENABLED,            /**< ::sd_softdevice_is_enabled */
+    SD_SOFTDEVICE_VECTOR_TABLE_BASE_SET, /**< ::sd_softdevice_vector_table_base_set */
+    SVC_SDM_LAST                         /**< Placeholder for last SDM SVC */
 };
 
 /** @} */
@@ -237,15 +237,15 @@ enum NRF_SD_SVCS
 /**@brief Type representing LFCLK oscillator source. */
 typedef struct
 {
-  uint8_t source;         /**< LF oscillator clock source, see @ref NRF_CLOCK_LF_SRC. */
-  uint8_t rc_ctiv;        /**< Only for ::NRF_CLOCK_LF_SRC_RC: Calibration timer interval in 1/4 second
+    uint8_t source;         /**< LF oscillator clock source, see @ref NRF_CLOCK_LF_SRC. */
+    uint8_t rc_ctiv;        /**< Only for ::NRF_CLOCK_LF_SRC_RC: Calibration timer interval in 1/4 second
                                units (nRF52: 1-32).
                                @note To avoid excessive clock drift, 0.5 degrees Celsius is the
                                      maximum temperature change allowed in one calibration timer
                                      interval. The interval should be selected to ensure this.
 
                                   @note Must be 0 if source is not ::NRF_CLOCK_LF_SRC_RC.  */
-  uint8_t rc_temp_ctiv;   /**<  Only for ::NRF_CLOCK_LF_SRC_RC: How often (in number of calibration
+    uint8_t rc_temp_ctiv;   /**<  Only for ::NRF_CLOCK_LF_SRC_RC: How often (in number of calibration
                                 intervals) the RC oscillator shall be calibrated if the temperature
                                 hasn't changed.
                                      0: Always calibrate even if the temperature hasn't changed.
@@ -263,7 +263,7 @@ typedef struct
                                       least once every 8 seconds and for temperature changes of 0.5
                                       degrees Celsius every 4 seconds. See the Product Specification
                                       for the nRF52 device being used for more information.*/
-  uint8_t accuracy;       /**< External clock accuracy used in the LL to compute timing
+    uint8_t accuracy;       /**< External clock accuracy used in the LL to compute timing
                                windows, see @ref NRF_CLOCK_LF_ACCURACY.*/
 } nrf_clock_lf_cfg_t;
 

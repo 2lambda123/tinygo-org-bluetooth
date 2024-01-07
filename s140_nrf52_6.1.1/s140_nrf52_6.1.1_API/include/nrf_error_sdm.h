@@ -36,13 +36,13 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
- /**
-  @addtogroup nrf_sdm_api
-  @{
-  @defgroup nrf_sdm_error SoftDevice Manager Error Codes
-  @{
+/**
+ @addtogroup nrf_sdm_api
+ @{
+ @defgroup nrf_sdm_error SoftDevice Manager Error Codes
+ @{
 
-  @brief Error definitions for the SDM API
+ @brief Error definitions for the SDM API
 */
 
 /* Header guard */
